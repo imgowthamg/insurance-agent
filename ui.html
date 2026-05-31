@@ -1,0 +1,391 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Insurance Agentic AI</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet" />
+<script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --bg: #f4f3ef;
+    --surface: #ffffff;
+    --surface2: #f0eeea;
+    --border: #e2dfd9;
+    --border2: #ccc9c0;
+    --text: #1a1916;
+    --muted: #7a7770;
+    --hint: #b0ada6;
+    --accent: #1a4fad;
+    --accent-light: #e8eef9;
+    --accent-muted: #a0b4dc;
+    --green: #1a6e3c;
+    --green-bg: #e8f5ee;
+    --red: #9b2020;
+    --red-bg: #faeaea;
+    --amber: #8a5a00;
+    --amber-bg: #fff4dc;
+    --radius: 10px;
+    --radius-sm: 6px;
+    --font: 'DM Sans', sans-serif;
+    --mono: 'DM Mono', monospace;
+  }
+
+  body {
+    font-family: var(--font);
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 2rem 1rem 4rem;
+  }
+
+  .container { width: 100%; max-width: 680px; display: flex; flex-direction: column; gap: 1.25rem; }
+
+  .header { display: flex; align-items: center; gap: 14px; padding: 0.5rem 0 0.25rem; }
+  .logo {
+    width: 42px; height: 42px; background: var(--text); border-radius: var(--radius-sm);
+    display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+  }
+  .logo svg { width: 22px; height: 22px; fill: none; stroke: white; stroke-width: 1.8; }
+  .header-text h1 { font-size: 18px; font-weight: 500; letter-spacing: -0.02em; }
+  .header-text p { font-size: 12px; color: var(--muted); margin-top: 2px; font-family: var(--mono); }
+
+  .card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 1.125rem 1.25rem; }
+
+  .card label { display: block; font-size: 11px; font-family: var(--mono); color: var(--muted); letter-spacing: 0.06em; text-transform: uppercase; margin-bottom: 10px; }
+
+  textarea {
+    width: 100%; min-height: 80px; resize: vertical;
+    font-family: var(--font); font-size: 14px; color: var(--text);
+    background: var(--surface2); border: 1px solid var(--border);
+    border-radius: var(--radius-sm); padding: 10px 12px; line-height: 1.55; outline: none;
+    transition: border-color 0.15s;
+  }
+  textarea:focus { border-color: var(--accent-muted); background: #fff; }
+  textarea::placeholder { color: var(--hint); }
+
+  .input-footer { display: flex; align-items: center; justify-content: space-between; margin-top: 10px; gap: 8px; }
+  .shortcut { font-size: 11px; color: var(--hint); font-family: var(--mono); }
+
+  button#submitBtn {
+    display: flex; align-items: center; gap: 6px;
+    font-family: var(--font); font-size: 13px; font-weight: 500;
+    padding: 0 18px; height: 36px; border-radius: var(--radius-sm);
+    border: 1px solid var(--text); background: var(--text); color: white;
+    cursor: pointer; transition: opacity 0.15s, transform 0.1s;
+  }
+  button#submitBtn:hover { opacity: 0.85; }
+  button#submitBtn:active { transform: scale(0.97); }
+  button#submitBtn:disabled { opacity: 0.4; cursor: not-allowed; transform: none; }
+  button#submitBtn svg { width: 14px; height: 14px; stroke: white; fill: none; stroke-width: 2; }
+
+  .chip-section p { font-size: 11px; font-family: var(--mono); color: var(--muted); letter-spacing: 0.06em; text-transform: uppercase; margin-bottom: 8px; }
+  .chips { display: flex; flex-wrap: wrap; gap: 6px; }
+  .chip {
+    font-size: 12px; padding: 5px 11px; border-radius: 20px;
+    border: 1px solid var(--border); background: var(--surface); color: var(--muted);
+    cursor: pointer; transition: border-color 0.15s, color 0.15s; white-space: nowrap;
+  }
+  .chip:hover { border-color: var(--border2); color: var(--text); }
+
+  /* Pipeline */
+  .pipeline-bar {
+    display: flex; align-items: center; padding: 0.75rem 1.25rem;
+    border-bottom: 1px solid var(--border); overflow-x: auto; gap: 0;
+  }
+  .pipe-step {
+    display: flex; align-items: center; gap: 5px;
+    font-size: 11px; font-family: var(--mono); color: var(--hint);
+    padding: 3px 8px; border-radius: var(--radius-sm); white-space: nowrap;
+    transition: color 0.2s, background 0.2s;
+  }
+  .pipe-step svg { width: 13px; height: 13px; stroke: currentColor; fill: none; stroke-width: 2; }
+  .pipe-step.active { color: var(--accent); background: var(--accent-light); }
+  .pipe-step.done { color: var(--green); }
+  .pipe-arrow { font-size: 11px; color: var(--hint); padding: 0 2px; }
+
+  /* Result */
+  .result-card { display: none; }
+  .result-card.visible { display: block; }
+
+  .result-header {
+    padding: 0.75rem 1.25rem; display: flex; align-items: center;
+    justify-content: space-between; border-bottom: 1px solid var(--border);
+  }
+  .result-header-label { font-size: 11px; font-family: var(--mono); color: var(--muted); text-transform: uppercase; letter-spacing: 0.06em; }
+
+  .badge { display: inline-flex; align-items: center; gap: 6px; font-size: 12px; font-weight: 500; padding: 4px 12px; border-radius: 20px; }
+  .badge svg { width: 13px; height: 13px; stroke: currentColor; fill: none; stroke-width: 2.2; }
+  .badge-approved  { background: var(--green-bg); color: var(--green); }
+  .badge-not-covered { background: var(--red-bg); color: var(--red); }
+  .badge-partial   { background: var(--amber-bg); color: var(--amber); }
+  .badge-error     { background: var(--surface2); color: var(--muted); }
+
+  .loading-row { display: none; align-items: center; gap: 10px; padding: 1.5rem 1.25rem; font-size: 13px; color: var(--muted); font-family: var(--mono); }
+  .loading-row.visible { display: flex; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  .spinner { width: 16px; height: 16px; border: 2px solid var(--border); border-top-color: var(--accent); border-radius: 50%; animation: spin 0.7s linear infinite; flex-shrink: 0; }
+
+  .result-body { display: none; flex-direction: column; }
+  .result-body.visible { display: flex; }
+  .result-section { padding: 1rem 1.25rem; border-bottom: 1px solid var(--border); }
+  .result-section:last-child { border-bottom: none; }
+  .section-label { font-size: 11px; font-family: var(--mono); color: var(--muted); text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 8px; }
+
+  .reason-box {
+    background: var(--surface2); border-radius: var(--radius-sm);
+    padding: 10px 12px; font-size: 13px; color: var(--text);
+    line-height: 1.6; border: 1px solid var(--border);
+  }
+
+  /* Markdown rendered report */
+  .report-md { font-size: 14px; color: var(--text); line-height: 1.75; }
+  .report-md h1, .report-md h2, .report-md h3 {
+    font-weight: 500; margin: 1.1em 0 0.4em; color: var(--text);
+    letter-spacing: -0.01em;
+  }
+  .report-md h1 { font-size: 16px; }
+  .report-md h2 { font-size: 14px; border-bottom: 1px solid var(--border); padding-bottom: 4px; }
+  .report-md h3 { font-size: 13px; color: var(--muted); }
+  .report-md p { margin: 0.5em 0; }
+  .report-md ul, .report-md ol { padding-left: 1.25rem; margin: 0.5em 0; }
+  .report-md li { margin: 0.3em 0; }
+  .report-md strong { font-weight: 500; }
+  .report-md em { font-style: italic; color: var(--muted); }
+  .report-md hr { border: none; border-top: 1px solid var(--border); margin: 1em 0; }
+  .report-md blockquote {
+    border-left: 3px solid var(--border2); margin: 0.75em 0;
+    padding: 0.4em 0.8em; color: var(--muted); font-size: 13px;
+  }
+  .report-md table { width: 100%; border-collapse: collapse; font-size: 13px; margin: 0.75em 0; }
+  .report-md th { background: var(--surface2); font-weight: 500; text-align: left; padding: 6px 10px; border: 1px solid var(--border); }
+  .report-md td { padding: 6px 10px; border: 1px solid var(--border); vertical-align: top; }
+  .report-md code {
+    font-family: var(--mono); font-size: 12px;
+    background: var(--surface2); border: 1px solid var(--border);
+    padding: 1px 5px; border-radius: 3px;
+  }
+
+  /* Error */
+  .error-box { display: none; background: var(--red-bg); border: 1px solid #f0c0c0; border-radius: var(--radius); padding: 0.875rem 1.125rem; font-size: 13px; color: var(--red); line-height: 1.5; }
+  .error-box.visible { display: block; }
+</style>
+</head>
+<body>
+<div class="container">
+
+  <div class="header">
+    <div class="logo">
+      <svg viewBox="0 0 24 24"><path d="M12 3L4 7v5c0 5 3.5 9.7 8 11 4.5-1.3 8-6 8-11V7l-8-4z"/></svg>
+    </div>
+    <div class="header-text">
+      <h1>Insurance Agentic AI</h1>
+      <p>langgraph · rag · gemma3:1b · chromadb</p>
+    </div>
+  </div>
+
+  <div class="card">
+    <label for="question">Policy question</label>
+    <textarea id="question" placeholder="e.g. Is knee replacement surgery covered under my policy?"></textarea>
+    <div class="input-footer">
+      <span class="shortcut">Ctrl+Enter to submit</span>
+      <button id="submitBtn" onclick="submitQuery()">
+        <svg viewBox="0 0 24 24"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+        Analyze
+      </button>
+    </div>
+  </div>
+
+  <div class="chip-section">
+    <p>Examples</p>
+    <div class="chips">
+      <span class="chip" onclick="setQ(this)">Is dental care covered?</span>
+      <span class="chip" onclick="setQ(this)">Does my policy cover pre-existing conditions?</span>
+      <span class="chip" onclick="setQ(this)">What is the claim process for hospitalization?</span>
+      <span class="chip" onclick="setQ(this)">Is physiotherapy included?</span>
+      <span class="chip" onclick="setQ(this)">Are maternity benefits covered?</span>
+    </div>
+  </div>
+
+  <div class="error-box" id="errorBox"></div>
+
+  <div class="card result-card" id="resultCard" style="padding:0; overflow:hidden;">
+    <div class="result-header">
+      <span class="result-header-label">Result</span>
+      <div id="decisionBadge"></div>
+    </div>
+
+    <div class="pipeline-bar">
+      <div class="pipe-step" id="ps-intent">
+        <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M12 1v4M12 19v4M4.22 4.22l2.83 2.83M16.95 16.95l2.83 2.83M1 12h4M19 12h4M4.22 19.78l2.83-2.83M16.95 7.05l2.83-2.83"/></svg>
+        Intent
+      </div>
+      <div class="pipe-arrow">›</div>
+      <div class="pipe-step" id="ps-retrieve">
+        <svg viewBox="0 0 24 24"><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"/><path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"/></svg>
+        Retrieve
+      </div>
+      <div class="pipe-arrow">›</div>
+      <div class="pipe-step" id="ps-analyze">
+        <svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+        Analyze
+      </div>
+      <div class="pipe-arrow">›</div>
+      <div class="pipe-step" id="ps-decide">
+        <svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>
+        Decide
+      </div>
+      <div class="pipe-arrow">›</div>
+      <div class="pipe-step" id="ps-report">
+        <svg viewBox="0 0 24 24"><path d="M13 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z"/><polyline points="13 2 13 9 20 9"/></svg>
+        Report
+      </div>
+    </div>
+
+    <div class="loading-row" id="loadingRow">
+      <div class="spinner"></div>
+      <span id="loadingMsg">Running agents…</span>
+    </div>
+
+    <div class="result-body" id="resultBody">
+      <div class="result-section">
+        <div class="section-label">Decision reason</div>
+        <div class="reason-box" id="reasonText"></div>
+      </div>
+      <div class="result-section">
+        <div class="section-label">Full report</div>
+        <div class="report-md" id="reportText"></div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+function setQ(el) {
+  document.getElementById('question').value = el.textContent;
+  document.getElementById('question').focus();
+}
+
+function setBadge(decision) {
+  const el = document.getElementById('decisionBadge');
+  const d = (decision || '').toLowerCase();
+  let cls = 'badge-error', icon = '', label = decision || 'Unknown';
+  if (d.includes('approved')) {
+    cls = 'badge-approved';
+    icon = '<svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>';
+  } else if (d.includes('not covered')) {
+    cls = 'badge-not-covered';
+    icon = '<svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>';
+  } else if (d.includes('partial')) {
+    cls = 'badge-partial';
+    icon = '<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>';
+  }
+  el.innerHTML = `<span class="badge ${cls}">${icon}${label}</span>`;
+}
+
+function setPipeStep(step) {
+  ['intent','retrieve','analyze','decide','report'].forEach(s => {
+    document.getElementById('ps-' + s).classList.remove('active','done');
+  });
+  if (step) document.getElementById('ps-' + step).classList.add('active');
+}
+
+function markAllDone() {
+  ['intent','retrieve','analyze','decide','report'].forEach(s => {
+    const el = document.getElementById('ps-' + s);
+    el.classList.remove('active');
+    el.classList.add('done');
+  });
+}
+
+async function submitQuery() {
+  const q = document.getElementById('question').value.trim();
+  if (!q) { document.getElementById('question').focus(); return; }
+
+  const btn = document.getElementById('submitBtn');
+  const errBox = document.getElementById('errorBox');
+  const resultCard = document.getElementById('resultCard');
+  const loadingRow = document.getElementById('loadingRow');
+  const resultBody = document.getElementById('resultBody');
+
+  btn.disabled = true;
+  errBox.className = 'error-box';
+  resultCard.className = 'card result-card visible';
+  loadingRow.className = 'loading-row visible';
+  resultBody.className = 'result-body';
+  document.getElementById('decisionBadge').innerHTML = '';
+  document.getElementById('reportText').innerHTML = '';
+  document.getElementById('reasonText').textContent = '';
+
+  const steps = [
+    ['intent',   'Classifying intent…'],
+    ['retrieve', 'Searching policy documents…'],
+    ['analyze',  'Analyzing clauses…'],
+    ['decide',   'Generating decision…'],
+    ['report',   'Writing report…'],
+  ];
+  let idx = 0;
+  setPipeStep('intent');
+  document.getElementById('loadingMsg').textContent = steps[0][1];
+  const ticker = setInterval(() => {
+    idx++;
+    if (idx < steps.length) {
+      setPipeStep(steps[idx][0]);
+      document.getElementById('loadingMsg').textContent = steps[idx][1];
+    }
+  }, 900);
+
+  try {
+    const res = await fetch('http://localhost:8000/analyze', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ question: q })
+    });
+
+    clearInterval(ticker);
+
+    if (!res.ok) {
+      const t = await res.text();
+      throw new Error(`Server error ${res.status}: ${t}`);
+    }
+
+    const data = await res.json();
+
+    markAllDone();
+    loadingRow.className = 'loading-row';
+    setBadge(data.decision?.decision || '');
+    document.getElementById('reasonText').textContent = data.decision?.reason || '—';
+
+    // Render markdown
+    const md = data.final_answer || '—';
+    document.getElementById('reportText').innerHTML =
+      typeof marked !== 'undefined' ? marked.parse(md) : md.replace(/\n/g, '<br>');
+
+    resultBody.className = 'result-body visible';
+
+  } catch (e) {
+    clearInterval(ticker);
+    loadingRow.className = 'loading-row';
+    resultCard.className = 'card result-card';
+    errBox.className = 'error-box visible';
+    errBox.textContent = e.message.includes('fetch')
+      ? '⚠ Could not connect. Make sure FastAPI is running on http://localhost:8000'
+      : e.message;
+  }
+
+  btn.disabled = false;
+}
+
+document.getElementById('question').addEventListener('keydown', e => {
+  if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) submitQuery();
+});
+</script>
+</body>
+</html>
